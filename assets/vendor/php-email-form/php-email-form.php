@@ -5,7 +5,7 @@ class PHP_Email_Form {
   public $from_name;
   public $from_email;
   public $subject;
-  public $smtp;
+  // public $smtp;
 
   public $ajax = false;
 
@@ -28,53 +28,51 @@ class PHP_Email_Form {
 
     $headers = "From: {$this->from_name} <{$this->from_email}>";
 
-    if (!empty($this->smtp)) {
-      $this->send_smtp($message_content, $headers);
-    } else {
+    // if (!empty($this->smtp)) {
+    //   $this->send_smtp($message_content, $headers);
+    // } else {
       $this->send_mail($message_content, $headers);
-    }
+    // }
 
     if ($this->ajax) {
       return 'success';
     }
   }
 
-  private function send_smtp($message_content, $headers) {
-    // Implement SMTP sending here using provided credentials
-    // Example code:
-    /*
-    $smtp_host = $this->smtp['host'];
-    $smtp_username = $this->smtp['username'];
-    $smtp_password = $this->smtp['password'];
-    $smtp_port = $this->smtp['port'];
+  // private function send_smtp($message_content, $headers) {
+  //   // Implement SMTP sending here using provided credentials
+  //   // Example code:
+  //   $smtp_host = $this->smtp['host'];
+  //   $smtp_username = $this->smtp['username'];
+  //   $smtp_password = $this->smtp['password'];
+  //   $smtp_port = $this->smtp['port'];
 
-    // Use appropriate SMTP library or functions to send the email
-    // Example code using PHPMailer library:
-    $mail = new PHPMailer();
-    $mail->IsSMTP();
-    $mail->Host = $smtp_host;
-    $mail->Port = $smtp_port;
-    $mail->SMTPAuth = true;
-    $mail->Username = $smtp_username;
-    $mail->Password = $smtp_password;
+  //   // Use appropriate SMTP library or functions to send the email
+  //   // Example code using PHPMailer library:
+  //   $mail = new PHPMailer\PHPMailer\PHPMailer();
+  //   $mail->isSMTP();
+  //   $mail->Host = $smtp_host;
+  //   $mail->Port = $smtp_port;
+  //   $mail->SMTPAuth = true;
+  //   $mail->Username = $smtp_username;
+  //   $mail->Password = $smtp_password;
 
-    $mail->SetFrom($this->from_email, $this->from_name);
-    $mail->AddAddress($this->to);
+  //   $mail->setFrom($this->from_email, $this->from_name);
+  //   $mail->addAddress($this->to);
 
-    $mail->Subject = $this->subject;
-    $mail->MsgHTML($message_content);
+  //   $mail->Subject = $this->subject;
+  //   $mail->Body = $message_content;
 
-    if (!$mail->Send()) {
-      if ($this->ajax) {
-        return 'error';
-      }
-    } else {
-      if ($this->ajax) {
-        return 'success';
-      }
-    }
-    */
-  }
+  //   if (!$mail->send()) {
+  //     if ($this->ajax) {
+  //       return 'error';
+  //     }
+  //   } else {
+  //     if ($this->ajax) {
+  //       return 'success';
+  //     }
+  //   }
+  // }
 
   private function send_mail($message_content, $headers) {
     $message = "<html><body>{$message_content}</body></html>";
