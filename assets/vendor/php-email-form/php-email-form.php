@@ -1,93 +1,75 @@
 <?php
 
-class PHP_Email_Form {
-  public $to;
-  public $from_name;
-  public $from_email;
-  public $subject;
-  // public $smtp;
+class PHP_Email_Form
+{
+    public $ajax = false;
+    public $to;
+    public $from_name;
+    public $from_email;
+    public $subject;
+    public $smtp;
 
-  public $ajax = false;
+    private $fields = array();
+    private $errors = array();
 
-  private $message = array();
+    public function add_message($value, $label, $length = 0)
+    {
+        if ($length > 0 && strlen($value) > $length) {
+            $this->errors[] = "The field $label exceeds the maximum length of $length characters.";
+        }
 
-  public function add_message($content, $label = '', $newline = true) {
-    if ($newline) {
-      $content = nl2br($content);
-    }
-    $this->message[] = array('content' => $content, 'label' => $label);
-  }
-
-  public function send() {
-    $message_content = '';
-    foreach ($this->message as $item) {
-      $label = $item['label'];
-      $content = $item['content'];
-      $message_content .= "<strong>{$label}:</strong><br>{$content}<br><br>";
+        $this->fields[$label] = $value;
     }
 
-    $headers = "From: {$this->from_name} <{$this->from_email}>";
+    public function validate($required_fields)
+    {
+        foreach ($required_fields as $field) {
+            if (empty($this->fields[$field])) {
+                $this->errors[] = "The $field field is required.";
+            }
+        }
 
-    // if (!empty($this->smtp)) {
-    //   $this->send_smtp($message_content, $headers);
-    // } else {
-      $this->send_mail($message_content, $headers);
-    // }
-
-    if ($this->ajax) {
-      return 'success';
+        return $this->errors;
     }
-  }
 
-  // private function send_smtp($message_content, $headers) {
-  //   // Implement SMTP sending here using provided credentials
-  //   // Example code:
-  //   $smtp_host = $this->smtp['host'];
-  //   $smtp_username = $this->smtp['username'];
-  //   $smtp_password = $this->smtp['password'];
-  //   $smtp_port = $this->smtp['port'];
+    public function send()
+    {
+        $message = '';
+        foreach ($this->fields as $label => $value) {
+            $message .= "$label: $value\n";
+        }
 
-  //   // Use appropriate SMTP library or functions to send the email
-  //   // Example code using PHPMailer library:
-  //   $mail = new PHPMailer\PHPMailer\PHPMailer();
-  //   $mail->isSMTP();
-  //   $mail->Host = $smtp_host;
-  //   $mail->Port = $smtp_port;
-  //   $mail->SMTPAuth = true;
-  //   $mail->Username = $smtp_username;
-  //   $mail->Password = $smtp_password;
+        $headers = "From: $this->from_name <$this->from_email>" . PHP_EOL;
+        $headers .= "Reply-To: $this->from_email" . PHP_EOL;
+        $headers .= "MIME-Version: 1.0" . PHP_EOL;
+        $headers .= "Content-type: text/plain; charset=utf-8" . PHP_EOL;
 
-  //   $mail->setFrom($this->from_email, $this->from_name);
-  //   $mail->addAddress($this->to);
+        if (!empty($this->smtp)) {
+            $smtp_host = $this->smtp['host'];
+            $smtp_username = $this->smtp['username'];
+            $smtp_password = $this->smtp['password'];
+            $smtp_port = $this->smtp['port'];
 
-  //   $mail->Subject = $this->subject;
-  //   $mail->Body = $message_content;
+            ini_set('SMTP', $smtp_host);
+            ini_set('smtp_port', $smtp_port);
+            ini_set('sendmail_from', $this->from_email);
 
-  //   if (!$mail->send()) {
-  //     if ($this->ajax) {
-  //       return 'error';
-  //     }
-  //   } else {
-  //     if ($this->ajax) {
-  //       return 'success';
-  //     }
-  //   }
-  // }
+            $headers .= "X-Mailer: PHP/" . phpversion() . PHP_EOL;
 
-  private function send_mail($message_content, $headers) {
-    $message = "<html><body>{$message_content}</body></html>";
-    $headers .= "\r\nContent-Type: text/html; charset=ISO-8859-1";
+            $params = "-f " . $this->from_email;
+            $additional_parameters = "-r " . $this->from_email;
 
-    if (mail($this->to, $this->subject, $message, $headers)) {
-      if ($this->ajax) {
-        return 'success';
-      }
-    } else {
-      if ($this->ajax) {
-        return 'error';
-      }
+            if (!mail($this->to, $this->subject, $message, $headers, $additional_parameters)) {
+                $this->errors[] = "Failed to send email using SMTP.";
+                return false;
+            }
+        } else {
+            if (!mail($this->to, $this->subject, $message, $headers)) {
+                $this->errors[] = "Failed to send email using mail() function.";
+                return false;
+            }
+        }
+
+        return true;
     }
-  }
 }
-
-?>
