@@ -8,7 +8,7 @@
   */
 
   // Requires the "PHP Email Form" library
-  require_once 'vendor/php-email-form/php-email-form.php';
+  // require_once 'vendor/php-email-form/php-email-form.php';
 
   // Replace contact@example.com with your real receiving email address
   $receiving_email_address = 'mignonitor@gmail.com';
