@@ -2,7 +2,11 @@
 
 class PHP_Email_Form
 {
-    public $ajax = false;
+    /**
+     * Summary of ajax
+     * @var 
+     */
+    public $ajax = true;
     public $to;
     public $from_name;
     public $from_email;

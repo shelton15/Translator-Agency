@@ -20,7 +20,7 @@ if (file_exists($php_email_form = 'vendor/php-email-form/php-email-form.php')) {
 }
 
 $contact = new PHP_Email_Form();
-$contact->ajax = false;
+$contact->ajax = true;
 
 $contact->to = $receiving_email_address;
 $contact->from_name = $_POST['name'];
