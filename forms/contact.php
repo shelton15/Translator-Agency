@@ -1,57 +1,74 @@
 <?php
-/**
- * Requires the "PHP Email Form" library
- * The "PHP Email Form" library is available only in the pro version of the template
- * The library should be uploaded to: vendor/php-email-form/php-email-form.php
- * For more info and help: https://bootstrapmade.com/php-email-form/
- * Retouched by shelton15
- */
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $to = "mignonitor@gmail.com"; // Replace with your email address
 
-// Requires the "PHP Email Form" library
-require_once 'assets/vendor/php-email-form/php-email-form.php';
+    // Fetching and sanitizing form data
+    $name = sanitizeInput($_POST['name']);
+    $email = sanitizeInput($_POST['email']);
+    $subject = sanitizeInput($_POST['subject']);
+    $message = sanitizeInput($_POST['message']);
 
-// Replace contact@example.com with your real receiving email address
-$receiving_email_address = 'mignonitor@gmail.com';
+    // Validating form data
+    $validation_errors = array();
 
-if (file_exists($php_email_form = 'vendor/php-email-form/php-email-form.php')) {
-    include($php_email_form);
-} else {
-    die('Unable to load the "PHP Email Form" Library!');
+    if (empty($name)) {
+        $validation_errors[] = "Name is required.";
+    }
+
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $validation_errors[] = "Invalid email address.";
+    }
+
+    if (empty($subject)) {
+        $validation_errors[] = "Subject is required.";
+    }
+
+    if (empty($message)) {
+        $validation_errors[] = "Message is required.";
+    }
+
+    // If there are validation errors, return the errors as a response
+    if (!empty($validation_errors)) {
+        $response = array(
+            'status' => 'error',
+            'message' => $validation_errors
+        );
+        echo json_encode($response);
+        exit;
+    }
+
+    // Create the email content
+    $email_content = "Name: $name\n";
+    $email_content .= "Email: $email\n";
+    $email_content .= "Subject: $subject\n";
+    $email_content .= "Message:\n$message\n";
+
+    // Set the email headers
+    $headers = "From: $name <$email>\r\n";
+    $headers .= "Reply-To: $email\r\n";
+
+    // Send the email
+    if (mail($to, $subject, $email_content, $headers)) {
+        $response = array(
+            'status' => 'success',
+            'message' => 'Your message has been sent. Thank you!'
+        );
+        echo json_encode($response);
+    } else {
+        $response = array(
+            'status' => 'error',
+            'message' => 'Failed to send the email. Please try again later.'
+        );
+        echo json_encode($response);
+    }
 }
 
-$contact = new PHP_Email_Form();
-$contact->ajax = true;
-
-$contact->to = $receiving_email_address;
-$contact->from_name = $_POST['name'];
-$contact->from_email = $_POST['email'];
-$contact->subject = $_POST['subject'];
-
-// Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
-/*
-$contact->smtp = array(
-    'host' => 'example.com',
-    'username' => 'example',
-    'password' => 'pass',
-    'port' => '587'
-);
-*/
-
-$contact->add_message($_POST['name'], 'From');
-$contact->add_message($_POST['email'], 'Email');
-$contact->add_message($_POST['message'], 'Message', 10);
-
-// Validate and sanitize form input
-$validation_errors = $contact->validate(array('name', 'email', 'subject', 'message'));
-if (!empty($validation_errors)) {
-    // Handle validation errors
-    echo json_encode(['success' => false, 'errors' => $validation_errors]);
-    exit;
+// Function to sanitize form input data
+function sanitizeInput($input)
+{
+    $input = trim($input);
+    $input = stripslashes($input);
+    $input = htmlspecialchars($input);
+    return $input;
 }
-
-// Send the email
-if ($contact->send()) {
-    echo json_encode(['success' => true]);
-} else {
-    echo json_encode(['success' => false, 'error' => 'Failed to send email. Please try again later.']);
-}
+?>
